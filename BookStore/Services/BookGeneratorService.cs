@@ -29,7 +29,6 @@ namespace BookStore.Services
                     .ToList())
                 .RuleFor(b => b.Publisher, f => $"{f.Company.CompanyName()}, {f.Date.Past(20).Year}");
         }
-
         private string GenerateISBN(Bogus.Faker f)
         {
             return $"978-{f.Random.Number(0, 9)}-{f.Random.Number(100, 999)}-{f.Random.Number(10000, 99999)}-{f.Random.Number(0, 9)}";

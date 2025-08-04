@@ -1,0 +1,9 @@
+D:\itransition\BookStore\BookStore\obj\Release\net8.0\PubTmp\Out\BookStore.exe
+D:\itransition\BookStore\BookStore\obj\Release\net8.0\PubTmp\Out\appsettings.Development.json
+D:\itransition\BookStore\BookStore\obj\Release\net8.0\PubTmp\Out\appsettings.json
+D:\itransition\BookStore\BookStore\obj\Release\net8.0\PubTmp\Out\BookStore.dll
+D:\itransition\BookStore\BookStore\obj\Release\net8.0\PubTmp\Out\BookStore.deps.json
+D:\itransition\BookStore\BookStore\obj\Release\net8.0\PubTmp\Out\BookStore.runtimeconfig.json
+D:\itransition\BookStore\BookStore\obj\Release\net8.0\PubTmp\Out\BookStore.pdb
+D:\itransition\BookStore\BookStore\obj\Release\net8.0\PubTmp\Out\Bogus.dll
+D:\itransition\BookStore\BookStore\obj\Release\net8.0\PubTmp\Out\CsvHelper.dll
