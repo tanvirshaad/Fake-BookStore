@@ -1,0 +1,79 @@
+[
+  {
+    "ContainingType": "BookStore.Controllers.BookController",
+    "Method": "GetBooks",
+    "RelativePath": "api/Book",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "country",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "seed",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "avgLikes",
+        "Type": "System.Double",
+        "IsRequired": false
+      },
+      {
+        "Name": "avgReviews",
+        "Type": "System.Double",
+        "IsRequired": false
+      },
+      {
+        "Name": "startIndex",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "count",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "BookStore.Controllers.BookController",
+    "Method": "ExportToCsv",
+    "RelativePath": "api/Book/export",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "country",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "seed",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "avgLikes",
+        "Type": "System.Double",
+        "IsRequired": false
+      },
+      {
+        "Name": "avgReviews",
+        "Type": "System.Double",
+        "IsRequired": false
+      },
+      {
+        "Name": "pages",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  }
+]

@@ -1,0 +1,341 @@
+﻿@{
+    ViewData["Title"] = "Book Store Testing Application";
+}
+
+<div class="container-fluid">
+    <!-- Control Panel -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            <label for="languageSelect" class="form-label">Language</label>
+                            <select id="languageSelect" class="form-select">
+                                <option value="en_US">English (US)</option>
+                                <option value="fr">French (France)</option>
+                                <option value="de">German (Germany)</option>
+                                <option value="ja">Japanese (Japan)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="seedInput" class="form-label">Seed</label>
+                            <div class="input-group">
+                                <input type="number" id="seedInput" class="form-control" value="58933423">
+                                <button class="btn btn-outline-secondary" type="button" id="shuffleBtn">
+                                    <i class="fas fa-random"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="likesSlider" class="form-label">Likes</label>
+                            <input type="range" class="form-range" id="likesSlider" min="0" max="10" step="0.1" value="3.7">
+                            <div class="d-flex justify-content-between">
+                                <small>0</small>
+                                <small id="likesValue">3.7</small>
+                                <small>10</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="reviewsInput" class="form-label">Reviews</label>
+                            <input type="number" id="reviewsInput" class="form-control" min="0" max="20" step="0.1" value="4.7">
+                        </div>
+                        <div class="col-md-3 d-flex justify-content-end">
+                            <div class="btn-group" role="group">
+                                @* <button type="button" class="btn btn-primary active" id="tableViewBtn">
+                                    <i class="fas fa-table"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" id="cardViewBtn">
+                                    <i class="fas fa-th"></i>
+                                </button> *@
+                            </div>
+                            <button type="button" class="btn btn-success ms-2" id="exportBtn">
+                                <i class="fas fa-download"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Books Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="booksTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>ISBN</th>
+                                    <th>Title</th>
+                                    <th>Author(s)</th>
+                                    <th>Publisher</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="booksTableBody">
+                                <!-- Books will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="loadingSpinner" class="text-center d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Book Detail Modal -->
+<div class="modal fade" id="bookDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookDetailTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="bookDetailContent">
+                <!-- Book details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentPage = 0;
+        let isLoading = false;
+        let currentSettings = {
+            country: 'en_US',
+            seed: 58933423,
+            avgLikes: 3.7,
+            avgReviews: 4.7
+        };
+
+        // Initialize the application
+        $(document).ready(function() {
+            loadBooks();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Language change
+            $('#languageSelect').on('change', function() {
+                currentSettings.country = $(this).val();
+                currentPage = 0;
+                $('#booksTableBody').empty();
+                loadBooks();
+            });
+
+            // Seed change
+            $('#seedInput').on('change', function() {
+                currentSettings.seed = parseInt($(this).val());
+                currentPage = 0;
+                $('#booksTableBody').empty();
+                loadBooks();
+            });
+
+            // Shuffle button
+            $('#shuffleBtn').on('click', function() {
+                const newSeed = Math.floor(Math.random() * 100000000);
+                $('#seedInput').val(newSeed);
+                currentSettings.seed = newSeed;
+                currentPage = 0;
+                $('#booksTableBody').empty();
+                loadBooks();
+            });
+
+            // Likes slider
+            $('#likesSlider').on('input', function() {
+                const value = parseFloat($(this).val());
+                $('#likesValue').text(value.toFixed(1));
+                currentSettings.avgLikes = value;
+                currentPage = 0;
+                $('#booksTableBody').empty();
+                loadBooks();
+            });
+
+            // Reviews input
+            $('#reviewsInput').on('change', function() {
+                currentSettings.avgReviews = parseFloat($(this).val());
+                currentPage = 0;
+                $('#booksTableBody').empty();
+                loadBooks();
+            });
+
+            // Export button
+            $('#exportBtn').on('click', function() {
+                exportToCsv();
+            });
+
+            // Infinite scroll
+            $(window).on('scroll', function() {
+                if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
+                    if (!isLoading) {
+                        loadMoreBooks();
+                    }
+                }
+            });
+        }
+
+        function loadBooks() {
+            isLoading = true;
+            showLoading(true);
+            
+            $.get('/api/book', currentSettings)
+                .done(function(books) {
+                    displayBooks(books);
+                    showLoading(false);
+                    isLoading = false;
+                })
+                .fail(function(xhr) {
+                    console.error('Error loading books:', xhr);
+                    showLoading(false);
+                    isLoading = false;
+                });
+        }
+
+        function loadMoreBooks() {
+            if (isLoading) return;
+            
+            isLoading = true;
+            showLoading(true);
+            
+            const params = {
+                ...currentSettings,
+                startIndex: currentPage * 20,
+                count: 10
+            };
+            
+            $.get('/api/book', params)
+                .done(function(books) {
+                    if (books.length > 0) {
+                        appendBooks(books);
+                        currentPage++;
+                    }
+                    showLoading(false);
+                    isLoading = false;
+                })
+                .fail(function(xhr) {
+                    console.error('Error loading more books:', xhr);
+                    showLoading(false);
+                    isLoading = false;
+                });
+        }
+
+        function displayBooks(books) {
+            const tbody = $('#booksTableBody');
+            tbody.empty();
+            appendBooks(books);
+        }
+
+        function appendBooks(books) {
+            const tbody = $('#booksTableBody');
+            
+            books.forEach(book => {
+                const row = createBookRow(book);
+                tbody.append(row);
+            });
+        }
+
+        function createBookRow(book) {
+            const authors = book.authors.join(', ');
+            const row = $(`
+                <tr data-book-id="${book.index}">
+                    <td>${book.index}</td>
+                    <td>${book.isbn}</td>
+                    <td>${book.title}</td>
+                    <td>${authors}</td>
+                    <td>${book.publisher}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary expand-btn" onclick="expandBook(${book.index})">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </td>
+                </tr>
+            `);
+            
+            // Add expandable detail row
+            const detailRow = $(`
+                <tr class="book-detail-row d-none" data-detail-for="${book.index}">
+                    <td colspan="6">
+                        <div class="book-detail-content p-3">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="book-cover-placeholder mb-3">
+                                        <div class="cover-image" style="background: linear-gradient(45deg, #f0f0f0, #e0e0e0); height: 200px; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; border-radius: 8px;">
+                                            <div class="text-center">
+                                                <small class="text-muted">${authors}</small>
+                                            </div>
+                                            <div class="text-center">
+                                                <h5 class="mb-0">${book.title}</h5>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-primary btn-sm w-100 mt-2">
+                                            <i class="fas fa-thumbs-up"></i> ${book.likes}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-9">
+                                    <h4>${book.title}</h4>
+                                    <p class="text-muted">Paperback</p>
+                                    <p><strong>by ${authors}</strong></p>
+                                    <p class="text-muted">${book.publisher}</p>
+                                    
+                                    <h5>Reviews</h5>
+                                    <div class="reviews-section">
+                                        ${book.reviews.map(review => `
+                                            <div class="review-item mb-2 p-2 border rounded">
+                                                <p class="mb-1">"${review.text}"</p>
+                                                <small class="text-muted">- ${review.reviewer}</small>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `);
+            
+            return row.add(detailRow);
+        }
+
+        function expandBook(bookId) {
+            const row = $(`tr[data-book-id="${bookId}"]`);
+            const detailRow = $(`tr[data-detail-for="${bookId}"]`);
+            const expandBtn = row.find('.expand-btn i');
+            
+            if (detailRow.hasClass('d-none')) {
+                detailRow.removeClass('d-none');
+                expandBtn.removeClass('fa-chevron-down').addClass('fa-chevron-up');
+            } else {
+                detailRow.addClass('d-none');
+                expandBtn.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+            }
+        }
+
+        function showLoading(show) {
+            if (show) {
+                $('#loadingSpinner').removeClass('d-none');
+            } else {
+                $('#loadingSpinner').addClass('d-none');
+            }
+        }
+
+        function exportToCsv() {
+            const params = new URLSearchParams({
+                ...currentSettings,
+                pages: Math.max(1, Math.ceil((currentPage + 1) * 20 / 20))
+            });
+            
+            window.open(`/api/book/export?${params.toString()}`, '_blank');
+        }
+    </script>
+}
